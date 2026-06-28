@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Youbo Ogroni",
+  "description": "Organisation Website for Youbo Ogroni",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
