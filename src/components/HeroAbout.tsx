@@ -55,7 +55,7 @@ export const About = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">আমাদের সম্পর্কে</h2>
           <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full mb-8"></div>
           <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-            যুব অগ্রণী (Jubo Ograni) একটি যুব-চালিত সামাজিক সংগঠন, যা তরুণ প্রজন্মের সক্রিয় অংশগ্রহণের মাধ্যমে সমাজে ইতিবাচক পরিবর্তন আনার লক্ষ্যে প্রতিষ্ঠিত হয়েছে।
+            যুব অগ্রণী (Youbo Ogroni) একটি যুব-চালিত সামাজিক সংগঠন, যা তরুণ প্রজন্মের সক্রিয় অংশগ্রহণের মাধ্যমে সমাজে ইতিবাচক পরিবর্তন আনার লক্ষ্যে প্রতিষ্ঠিত হয়েছে।
           </p>
           <p className="text-lg text-gray-700 leading-relaxed">
             আমাদের সংগঠন শিক্ষা সহায়তা, বৃক্ষরোপণের মাধ্যমে পরিবেশ সংরক্ষণ এবং সম্প্রদায় গঠনের মতো বিভিন্ন ফ্রন্টে অক্লান্তভাবে কাজ করে যাচ্ছে।
