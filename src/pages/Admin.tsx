@@ -258,7 +258,7 @@ const AddImagesTab = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {members.map(m => (
             <div key={m.id} className="bg-white p-4 rounded-xl border relative group">
-              <button onClick={() => deleteDocItem('members', m.id)} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={14}/></button>
+              <button onClick={() => deleteDocItem('members', m.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full md:opacity-0 opacity-100 group-hover:opacity-100 transition-opacity shadow-md z-10"><X size={16}/></button>
               <img src={m.image} alt={m.name} className="w-16 h-16 rounded-full mx-auto mb-3 object-cover" />
               <p className="font-bold text-center text-sm">{m.name}</p>
               <p className="text-xs text-center text-emerald-600 font-medium">{m.role}</p>
@@ -278,7 +278,7 @@ const AddImagesTab = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {gallery.map(g => (
             <div key={g.id} className="relative group rounded-xl overflow-hidden aspect-square border">
-              <button onClick={() => deleteDocItem('gallery', g.id)} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"><X size={14}/></button>
+              <button onClick={() => deleteDocItem('gallery', g.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full md:opacity-0 opacity-100 group-hover:opacity-100 transition-opacity shadow-md z-10"><X size={16}/></button>
               <button 
                 onClick={() => toggleShowInHome(g.id, g.showInHome)} 
                 className={`absolute top-2 left-2 p-1 rounded-full z-10 transition-all ${g.showInHome ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100'}`}

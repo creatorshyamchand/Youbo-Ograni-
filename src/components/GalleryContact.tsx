@@ -5,20 +5,12 @@ import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 
-const defaultImages = [
-  "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80",
-];
+const defaultImages: string[] = [];
 
 export const Gallery = () => {
   const [images, setImages] = useState<string[]>(defaultImages);
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'gallery'), (snap) => {
@@ -31,7 +23,10 @@ export const Gallery = () => {
         } else {
           setImages([]);
         }
+      } else {
+        setImages([]);
       }
+      setLoading(false);
     });
     return () => unsub();
   }, []);
@@ -44,19 +39,25 @@ export const Gallery = () => {
           <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((src, idx) => (
-            <div key={idx} onClick={() => setSelectedImg(src)} className="cursor-pointer overflow-hidden rounded-2xl group relative bg-gray-100 shadow-sm hover:shadow-xl transition-shadow duration-300 aspect-square">
-              <img 
-                src={src} 
-                alt={`Gallery image ${idx + 1}`} 
-                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center text-gray-500 py-12">ছবি লোড হচ্ছে...</div>
+        ) : images.length === 0 ? (
+          <div className="text-center text-gray-500 py-12">কোনো ছবি পাওয়া যায়নি।</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.map((src, idx) => (
+              <div key={idx} onClick={() => setSelectedImg(src)} className="cursor-pointer overflow-hidden rounded-2xl group relative bg-gray-100 shadow-sm hover:shadow-xl transition-shadow duration-300 aspect-square">
+                <img 
+                  src={src} 
+                  alt={`Gallery image ${idx + 1}`} 
+                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className="text-center mt-12">
           <Link to="/gallery" className="inline-block bg-emerald-600 text-white font-bold px-8 py-3 rounded-full hover:bg-emerald-700 transition-colors shadow-md">

@@ -89,23 +89,21 @@ export const Work = () => {
   );
 };
 
-const fallbackMembers = [
-  { id: 1, name: 'রাহুল দাস', role: 'সভাপতি', desc: 'সংগঠনের সমস্ত কার্যাবলীর দিকনির্দেশনা ও তদারকি করেন।', image: 'https://i.pravatar.cc/150?u=1' },
-  { id: 2, name: 'অমিত রায়', role: 'সহ-সভাপতি', desc: 'সভাপতির অবর্তমানে সংগঠনের দায়িত্ব গ্রহণ করেন এবং সহযোগিতা করেন।', image: 'https://i.pravatar.cc/150?u=2' },
-  { id: 3, name: 'স্নেহা ঘোষ', role: 'সম্পাদক', desc: 'সংগঠনের সার্বিক পরিকল্পনা ও পরিচালনার মূল দায়িত্ব পালন করেন।', image: 'https://i.pravatar.cc/150?u=3' },
-  { id: 4, name: 'রোহন সেন', role: 'কোষাধ্যক্ষ', desc: 'সংগঠনের আর্থিক লেনদেন ও তহবিলের হিসাব রক্ষণাবেক্ষণ করেন।', image: 'https://i.pravatar.cc/150?u=4' },
-  { id: 5, name: 'প্রিয়া সাহা', role: 'ইভেন্ট কোঅর্ডিনেটর', desc: 'সংগঠনের সকল সামাজিক অনুষ্ঠান ও কার্যক্রমের আয়োজন করেন।', image: 'https://i.pravatar.cc/150?u=5' }
-];
+const fallbackMembers: any[] = [];
 
 export const Members = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [members, setMembers] = useState<any[]>(fallbackMembers);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'members'), (snap) => {
       if (!snap.empty) {
         setMembers(snap.docs.map(d => ({id: d.id, ...d.data()})));
+      } else {
+        setMembers([]);
       }
+      setLoading(false);
     });
     return () => unsub();
   }, []);
@@ -118,7 +116,29 @@ export const Members = () => {
     return () => clearInterval(timer);
   }, [members.length]);
 
-  if (members.length === 0) return null;
+  if (loading) {
+    return (
+      <div className="py-24 bg-gray-50 min-h-[600px] flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">আমাদের বিশেষ সদস্যবৃন্দ</h2>
+          <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full mb-8"></div>
+          <p className="text-gray-500">সদস্যদের তথ্য লোড হচ্ছে...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (members.length === 0) {
+    return (
+      <div className="py-24 bg-gray-50 min-h-[600px] flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">আমাদের বিশেষ সদস্যবৃন্দ</h2>
+          <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full mb-8"></div>
+          <p className="text-gray-500">কোনো সদস্য যোগ করা হয়নি।</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-24 bg-gray-50">
