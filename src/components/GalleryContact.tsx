@@ -147,7 +147,7 @@ export const Contact = () => {
               </button>
             </form>
             <div className="mt-8 text-center border-t border-gray-100 pt-6">
-               <a href="https://instagram.com/creator_shyamchand_07" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by Youbo Ograni</a>
+               <a href="https://instagram.com/creator_shyamchand_07" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by Youbo Ogroni Social And Welfare Trust</a>
             </div>
           </div>
 
@@ -183,7 +183,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 text-white">ইমেইল</h4>
-                    <p className="text-emerald-50 text-lg">info@youboograni.org</p>
+                    <p className="text-emerald-50 text-lg">info@youboogroni.org</p>
                   </div>
                 </div>
               </div>
