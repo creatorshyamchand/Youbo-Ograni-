@@ -174,7 +174,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 text-white">ফোন</h4>
-                    <p className="text-emerald-50 text-lg">+91 9876543210</p>
+                    <p className="text-emerald-50 text-lg">+91 9134002625</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-5">
