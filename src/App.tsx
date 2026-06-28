@@ -10,6 +10,7 @@ import { Work, Members } from './components/WorkMembers';
 import { Gallery, Contact } from './components/GalleryContact';
 import { FutureGoals } from './components/FutureGoals';
 import { AdminPanel } from './pages/Admin';
+import { AllGalleryPage } from './pages/AllGalleryPage';
 
 function MainSite() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<MainSite />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/gallery" element={<AllGalleryPage />} />
       </Routes>
     </BrowserRouter>
   );

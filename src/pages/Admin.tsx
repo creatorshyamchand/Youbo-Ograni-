@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { auth, db, storage } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, deleteDoc, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, Upload } from 'lucide-react';
+import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AdminPanel = () => {
@@ -233,6 +232,17 @@ const AddImagesTab = () => {
     }
   };
 
+  const toggleShowInHome = async (id: string, currentStatus: boolean) => {
+    if (!currentStatus) {
+      const shownCount = gallery.filter(g => g.showInHome).length;
+      if (shownCount >= 10) {
+        alert('10 images are ✓ ticked to show in home page. If you want to add this, then remove one.');
+        return;
+      }
+    }
+    await updateDoc(doc(db, 'gallery', id), { showInHome: !currentStatus });
+  };
+
   return (
     <div className="space-y-12">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Images & content</h2>
@@ -260,7 +270,7 @@ const AddImagesTab = () => {
       {/* Gallery Section */}
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-800">Gallery Images</h3>
+          <h3 className="text-xl font-bold text-gray-800">Gallery Images ({gallery.filter(g => g.showInHome).length}/10 in Home)</h3>
           <button onClick={() => setShowGalleryModal(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700">
             <ImagePlus size={18} /> Add Image
           </button>
@@ -269,6 +279,13 @@ const AddImagesTab = () => {
           {gallery.map(g => (
             <div key={g.id} className="relative group rounded-xl overflow-hidden aspect-square border">
               <button onClick={() => deleteDocItem('gallery', g.id)} className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"><X size={14}/></button>
+              <button 
+                onClick={() => toggleShowInHome(g.id, g.showInHome)} 
+                className={`absolute top-2 left-2 p-1 rounded-full z-10 transition-all ${g.showInHome ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100'}`}
+                title="Show in Home Page"
+              >
+                {g.showInHome ? <CheckSquare size={16}/> : <Square size={16}/>}
+              </button>
               <img src={g.url} className="w-full h-full object-cover" />
             </div>
           ))}
@@ -276,7 +293,7 @@ const AddImagesTab = () => {
       </div>
 
       {showMemberModal && <MemberModal onClose={() => setShowMemberModal(false)} />}
-      {showGalleryModal && <GalleryModal onClose={() => setShowGalleryModal(false)} />}
+      {showGalleryModal && <GalleryModal onClose={() => setShowGalleryModal(false)} galleryCount={gallery.filter(g => g.showInHome).length} />}
     </div>
   );
 };
@@ -355,29 +372,26 @@ const MemberModal = ({ onClose }: any) => {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [desc, setDesc] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if(!file) return alert('Please select an image');
+    if(!imageUrl) return alert('Please enter an image URL');
     setLoading(true);
     try {
-      const imgRef = ref(storage, `members/${Date.now()}_${file.name}`);
-      await uploadBytes(imgRef, file);
-      const url = await getDownloadURL(imgRef);
-      await addDoc(collection(db, 'members'), { name, role, desc, image: url, createdAt: new Date() });
+      await addDoc(collection(db, 'members'), { name, role, desc, image: imageUrl, createdAt: new Date() });
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Error uploading');
+      alert('Error saving member');
     }
     setLoading(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 my-8">
         <div className="flex justify-between mb-6">
           <h3 className="font-bold text-xl">Add Member</h3>
           <button onClick={onClose}><X/></button>
@@ -386,31 +400,48 @@ const MemberModal = ({ onClose }: any) => {
           <input type="text" placeholder="Name" required value={name} onChange={e=>setName(e.target.value)} className="w-full p-3 border rounded-lg" />
           <input type="text" placeholder="Role (e.g. সভাপতি)" required value={role} onChange={e=>setRole(e.target.value)} className="w-full p-3 border rounded-lg" />
           <textarea placeholder="Description" required value={desc} onChange={e=>setDesc(e.target.value)} className="w-full p-3 border rounded-lg" rows={3} />
-          <input type="file" accept="image/*" required onChange={e => setFile(e.target.files?.[0] || null)} className="w-full" />
-          <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold">{loading ? 'Saving...' : 'Save Member'}</button>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">ImgBB URL (or any image link)</label>
+            <input type="url" placeholder="https://i.ibb.co/..." required value={imageUrl} onChange={e=>setImageUrl(e.target.value)} className="w-full p-3 border rounded-lg" />
+          </div>
+          {imageUrl && (
+            <div className="mt-2 text-center">
+              <p className="text-xs text-gray-500 mb-1">Preview:</p>
+              <img src={imageUrl} alt="Preview" className="w-24 h-24 object-cover rounded-full mx-auto border" onError={(e) => (e.currentTarget.style.display = 'none')} />
+            </div>
+          )}
+
+          <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold mt-4">{loading ? 'Saving...' : 'Save Member'}</button>
         </form>
       </div>
     </div>
   );
 };
 
-const GalleryModal = ({ onClose }: any) => {
-  const [file, setFile] = useState<File | null>(null);
+const GalleryModal = ({ onClose, galleryCount }: any) => {
+  const [imageUrl, setImageUrl] = useState('');
+  const [showInHome, setShowInHome] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const handleToggle = () => {
+    if (!showInHome && galleryCount >= 10) {
+      alert('10 images are ✓ ticked to show in home page. If you want to add this, then remove one.');
+      return;
+    }
+    setShowInHome(!showInHome);
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if(!file) return alert('Please select an image');
+    if(!imageUrl) return alert('Please enter an image URL');
     setLoading(true);
     try {
-      const imgRef = ref(storage, `gallery/${Date.now()}_${file.name}`);
-      await uploadBytes(imgRef, file);
-      const url = await getDownloadURL(imgRef);
-      await addDoc(collection(db, 'gallery'), { url, createdAt: new Date() });
+      await addDoc(collection(db, 'gallery'), { url: imageUrl, showInHome, createdAt: new Date() });
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Error uploading');
+      alert('Error saving image');
     }
     setLoading(false);
   };
@@ -423,8 +454,25 @@ const GalleryModal = ({ onClose }: any) => {
           <button onClick={onClose}><X/></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input type="file" accept="image/*" required onChange={e => setFile(e.target.files?.[0] || null)} className="w-full" />
-          <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold">{loading ? 'Uploading...' : 'Upload Image'}</button>
+          <div>
+            <label className="block text-sm font-medium mb-1">ImgBB URL (or any image link)</label>
+            <input type="url" placeholder="https://i.ibb.co/..." required value={imageUrl} onChange={e=>setImageUrl(e.target.value)} className="w-full p-3 border rounded-lg" />
+          </div>
+          {imageUrl && (
+            <div className="mt-2">
+              <p className="text-xs text-gray-500 mb-1">Preview:</p>
+              <img src={imageUrl} alt="Preview" className="w-full h-32 object-cover rounded-lg border" onError={(e) => (e.currentTarget.style.display = 'none')} />
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2 pt-2">
+            <button type="button" onClick={handleToggle} className={`p-1 rounded text-white ${showInHome ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+              {showInHome ? <CheckSquare size={20}/> : <Square size={20}/>}
+            </button>
+            <span className="text-sm font-medium cursor-pointer" onClick={handleToggle}>Show in Home Page</span>
+          </div>
+
+          <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold mt-4">{loading ? 'Saving...' : 'Add Image'}</button>
         </form>
       </div>
     </div>

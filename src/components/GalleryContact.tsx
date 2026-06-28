@@ -3,6 +3,7 @@ import { Send, MapPin, Phone, Mail, X } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 
 const defaultImages = [
   "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80",
@@ -22,7 +23,14 @@ export const Gallery = () => {
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'gallery'), (snap) => {
       if (!snap.empty) {
-        setImages(snap.docs.map(d => d.data().url));
+        // filter images that have showInHome = true
+        const homeImages = snap.docs.filter(d => d.data().showInHome).map(d => d.data().url);
+        // Only show up to 10
+        if (homeImages.length > 0) {
+          setImages(homeImages.slice(0, 10));
+        } else {
+          setImages([]);
+        }
       }
     });
     return () => unsub();
@@ -48,6 +56,12 @@ export const Gallery = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           ))}
+        </div>
+        
+        <div className="text-center mt-12">
+          <Link to="/gallery" className="inline-block bg-emerald-600 text-white font-bold px-8 py-3 rounded-full hover:bg-emerald-700 transition-colors shadow-md">
+            আরও ছবি দেখুন
+          </Link>
         </div>
       </div>
 
