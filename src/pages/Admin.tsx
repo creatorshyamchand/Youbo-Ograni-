@@ -3,7 +3,7 @@ import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square } from 'lucide-react';
+import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AdminPanel = () => {
@@ -28,7 +28,7 @@ export const AdminPanel = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      setError('লগইন ব্যর্থ হয়েছে। ইমেইল বা পাসওয়ার্ড ভুল।');
+      setError('à¦²à¦—à¦‡à¦¨ à¦¬à§à¦¯à¦°à§à¦¥ à¦¹à¦¯à¦¼à§‡à¦›à§‡à¥¤ à¦‡à¦®à§‡à¦‡à¦² à¦¬à¦¾ à¦ªà¦¾à¦¸à¦“à¦¯à¦¼à¦¾à¦°à§à¦¡ à¦­à§à¦²à¥¤');
     }
   };
 
@@ -40,19 +40,19 @@ export const AdminPanel = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
         <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-          <h2 className="text-3xl font-bold text-center mb-8 text-emerald-900">অ্যাডমিন প্যানেল</h2>
+          <h2 className="text-3xl font-bold text-center mb-8 text-emerald-900">à¦…à§à¦¯à¦¾à¦¡à¦®à¦¿à¦¨ à¦ªà§à¦¯à¦¾à¦¨à§‡à¦²</h2>
           {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">ইমেইল</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">à¦‡à¦®à§‡à¦‡à¦²</label>
               <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">à¦ªà¦¾à¦¸à¦“à¦¯à¦¼à¦¾à¦°à§à¦¡</label>
               <input required type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition-colors">
-              লগইন করুন
+              à¦²à¦—à¦‡à¦¨ à¦•à¦°à§à¦¨
             </button>
           </form>
         </div>
@@ -65,8 +65,8 @@ export const AdminPanel = () => {
       {/* Sidebar - Desktop */}
       <div className="hidden md:flex w-64 bg-emerald-900 text-white flex-col">
         <div className="p-6">
-          <h2 className="text-2xl font-bold">যুব অগ্রণী</h2>
-          <p className="text-emerald-300 text-sm">অ্যাডমিন প্যানেল</p>
+          <h2 className="text-2xl font-bold">à¦¯à§à¦¬ à¦…à¦—à§à¦°à¦£à§€</h2>
+          <p className="text-emerald-300 text-sm">à¦…à§à¦¯à¦¾à¦¡à¦®à¦¿à¦¨ à¦ªà§à¦¯à¦¾à¦¨à§‡à¦²</p>
         </div>
         <nav className="flex-1 px-4 space-y-2">
           <NavItem icon={<LayoutDashboard />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
@@ -77,7 +77,7 @@ export const AdminPanel = () => {
         <div className="p-4 border-t border-emerald-800">
           <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-emerald-200 hover:text-white hover:bg-emerald-800 rounded-lg transition-colors">
             <LogOut size={20} />
-            <span>লগআউট</span>
+            <span>à¦²à¦—à¦†à¦‰à¦Ÿ</span>
           </button>
         </div>
       </div>
@@ -185,23 +185,23 @@ const ControlTab = () => {
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Control Panel</h2>
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold mb-6 border-b pb-4">আমাদের প্রভাব - স্ট্যাটস পরিবর্তন</h3>
+        <h3 className="text-lg font-bold mb-6 border-b pb-4">à¦†à¦®à¦¾à¦¦à§‡à¦° à¦ªà§à¦°à¦­à¦¾à¦¬ - à¦¸à§à¦Ÿà§à¦¯à¦¾à¦Ÿà¦¸ à¦ªà¦°à¦¿à¦¬à¦°à§à¦¤à¦¨</h3>
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">সক্রিয় সদস্য (Members)</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¸à¦•à§à¦°à¦¿à¦¯à¦¼ à¦¸à¦¦à¦¸à§à¦¯ (Members)</label>
               <input type="number" value={stats.members} onChange={e => setStats({...stats, members: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">শিক্ষার্থী পুরস্কৃত</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¶à¦¿à¦•à§à¦·à¦¾à¦°à§à¦¥à§€ à¦ªà§à¦°à¦¸à§à¦•à§ƒà¦¤</label>
               <input type="number" value={stats.puruskrito} onChange={e => setStats({...stats, puruskrito: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">বৃক্ষরোপণ</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¬à§ƒà¦•à§à¦·à¦°à§‹à¦ªà¦£</label>
               <input type="number" value={stats.brikho} onChange={e => setStats({...stats, brikho: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">সফল অনুষ্ঠান</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¸à¦«à¦² à¦…à¦¨à§à¦·à§à¦ à¦¾à¦¨</label>
               <input type="number" value={stats.onusthan} onChange={e => setStats({...stats, onusthan: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
           </div>
@@ -216,6 +216,7 @@ const ControlTab = () => {
 
 const AddImagesTab = () => {
   const [showMemberModal, setShowMemberModal] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
   const [gallery, setGallery] = useState<any[]>([]);
@@ -236,7 +237,7 @@ const AddImagesTab = () => {
     if (!currentStatus) {
       const shownCount = gallery.filter(g => g.showInHome).length;
       if (shownCount >= 10) {
-        alert('10 images are ✓ ticked to show in home page. If you want to add this, then remove one.');
+        alert('10 images are âœ“ ticked to show in home page. If you want to add this, then remove one.');
         return;
       }
     }
@@ -251,14 +252,17 @@ const AddImagesTab = () => {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-800">Members</h3>
-          <button onClick={() => setShowMemberModal(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700">
+          <button onClick={() => { setEditingMember(null); setShowMemberModal(true); }} className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700">
             <ImagePlus size={18} /> Add Member
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {members.map(m => (
             <div key={m.id} className="bg-white p-4 rounded-xl border relative group">
-              <button onClick={() => deleteDocItem('members', m.id)} className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full md:opacity-0 opacity-100 group-hover:opacity-100 transition-opacity shadow-md z-10"><X size={16}/></button>
+              <div className="absolute top-2 right-2 flex flex-col gap-2 z-10 md:opacity-0 opacity-100 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => { setEditingMember(m); setShowMemberModal(true); }} className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-full shadow-md"><Edit size={16}/></button>
+                <button onClick={() => deleteDocItem('members', m.id)} className="bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full shadow-md"><X size={16}/></button>
+              </div>
               <img src={m.image} alt={m.name} className="w-16 h-16 rounded-full mx-auto mb-3 object-cover" />
               <p className="font-bold text-center text-sm">{m.name}</p>
               <p className="text-xs text-center text-emerald-600 font-medium">{m.role}</p>
@@ -292,7 +296,7 @@ const AddImagesTab = () => {
         </div>
       </div>
 
-      {showMemberModal && <MemberModal onClose={() => setShowMemberModal(false)} />}
+      {showMemberModal && <MemberModal onClose={() => setShowMemberModal(false)} member={editingMember} />}
       {showGalleryModal && <GalleryModal onClose={() => setShowGalleryModal(false)} galleryCount={gallery.filter(g => g.showInHome).length} />}
     </div>
   );
@@ -368,11 +372,11 @@ const FormLookupTab = () => {
 
 
 // Modals
-const MemberModal = ({ onClose }: any) => {
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('');
-  const [desc, setDesc] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+const MemberModal = ({ onClose, member }: any) => {
+  const [name, setName] = useState(member?.name || '');
+  const [role, setRole] = useState(member?.role || '');
+  const [desc, setDesc] = useState(member?.desc || '');
+  const [imageUrl, setImageUrl] = useState(member?.image || '');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: any) => {
@@ -380,7 +384,11 @@ const MemberModal = ({ onClose }: any) => {
     if(!imageUrl) return alert('Please enter an image URL');
     setLoading(true);
     try {
-      await addDoc(collection(db, 'members'), { name, role, desc, image: imageUrl, createdAt: new Date() });
+      if (member?.id) {
+        await updateDoc(doc(db, 'members', member.id), { name, role, desc, image: imageUrl });
+      } else {
+        await addDoc(collection(db, 'members'), { name, role, desc, image: imageUrl, createdAt: new Date() });
+      }
       onClose();
     } catch (err) {
       console.error(err);
@@ -393,12 +401,12 @@ const MemberModal = ({ onClose }: any) => {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl w-full max-w-md p-6 my-8">
         <div className="flex justify-between mb-6">
-          <h3 className="font-bold text-xl">Add Member</h3>
+          <h3 className="font-bold text-xl">{member ? 'Edit Member' : 'Add Member'}</h3>
           <button onClick={onClose}><X/></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" placeholder="Name" required value={name} onChange={e=>setName(e.target.value)} className="w-full p-3 border rounded-lg" />
-          <input type="text" placeholder="Role (e.g. সভাপতি)" required value={role} onChange={e=>setRole(e.target.value)} className="w-full p-3 border rounded-lg" />
+          <input type="text" placeholder="Role (e.g. à¦¸à¦­à¦¾à¦ªà¦¤à¦¿)" required value={role} onChange={e=>setRole(e.target.value)} className="w-full p-3 border rounded-lg" />
           <textarea placeholder="Description" required value={desc} onChange={e=>setDesc(e.target.value)} className="w-full p-3 border rounded-lg" rows={3} />
           
           <div>
@@ -412,7 +420,7 @@ const MemberModal = ({ onClose }: any) => {
             </div>
           )}
 
-          <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold mt-4">{loading ? 'Saving...' : 'Save Member'}</button>
+          <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold mt-4">{loading ? 'Saving...' : (member ? 'Update Member' : 'Save Member')}</button>
         </form>
       </div>
     </div>
@@ -426,7 +434,7 @@ const GalleryModal = ({ onClose, galleryCount }: any) => {
 
   const handleToggle = () => {
     if (!showInHome && galleryCount >= 10) {
-      alert('10 images are ✓ ticked to show in home page. If you want to add this, then remove one.');
+      alert('10 images are âœ“ ticked to show in home page. If you want to add this, then remove one.');
       return;
     }
     setShowInHome(!showInHome);
