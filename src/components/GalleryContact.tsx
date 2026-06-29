@@ -111,6 +111,9 @@ export const Contact = () => {
     <div className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
+          <p className="text-emerald-600 font-bold tracking-wider uppercase mb-2 text-sm md:text-base">
+            Youbo Ogroni Social And Welfare Trust
+          </p>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">যোগাযোগ করুন</h2>
           <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full"></div>
         </div>
@@ -147,7 +150,7 @@ export const Contact = () => {
               </button>
             </form>
             <div className="mt-8 text-center border-t border-gray-100 pt-6">
-               <a href="https://instagram.com/creator_shyamchand_07" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by Youbo Ogroni Social And Welfare Trust</a>
+               <a href="https://Instagram.com/creator_shyamchand_07" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by Youbo Ogroni Social And Welfare Trust</a>
             </div>
           </div>
 
