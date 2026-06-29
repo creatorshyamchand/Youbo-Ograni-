@@ -59,7 +59,7 @@ export const AllGalleryPage = () => {
             <ArrowLeft size={24} />
           </Link>
           <div className="text-2xl font-bold tracking-tight text-emerald-700">
-            যুব অগ্রণী
+            à¦¯à§à¦¬ à¦…à¦—à§à¦°à¦£à§€
           </div>
         </div>
       </nav>
@@ -68,12 +68,19 @@ export const AllGalleryPage = () => {
       <div className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden bg-emerald-900 text-white">
         <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.p 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-emerald-200 text-lg md:text-xl font-medium tracking-wider uppercase mb-4"
+          >
+            Youbo Ogroni Social And Welfare Trust
+          </motion.p>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight"
           >
-            সম্পূর্ণ গ্যালারি
+            à¦¸à¦®à§à¦ªà§‚à¦°à§à¦£ à¦—à§à¦¯à¦¾à¦²à¦¾à¦°à¦¿
           </motion.h1>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -87,7 +94,7 @@ export const AllGalleryPage = () => {
             transition={{ delay: 0.2 }}
             className="text-xl text-emerald-100 font-medium max-w-3xl mx-auto"
           >
-            আমাদের সমাজ গঠনের প্রতিটি মুহূর্তের ছবি
+            à¦†à¦®à¦¾à¦¦à§‡à¦° à¦¸à¦®à¦¾à¦œ à¦—à¦ à¦¨à§‡à¦° à¦ªà§à¦°à¦¤à¦¿à¦Ÿà¦¿ à¦®à§à¦¹à§‚à¦°à§à¦¤à§‡à¦° à¦›à¦¬à¦¿
           </motion.p>
         </div>
       </div>
@@ -95,7 +102,7 @@ export const AllGalleryPage = () => {
       {/* Gallery Grid */}
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
         {images.length === 0 ? (
-          <div className="text-center text-gray-500 py-12 text-lg">কোনো ছবি পাওয়া যায়নি।</div>
+          <div className="text-center text-gray-500 py-12 text-lg">à¦•à§‹à¦¨à§‹ à¦›à¦¬à¦¿ à¦ªà¦¾à¦“à§Ÿà¦¾ à¦¯à¦¾à§Ÿà¦¨à¦¿à¥¤</div>
         ) : (
           <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
             {images.map((img, idx) => (
