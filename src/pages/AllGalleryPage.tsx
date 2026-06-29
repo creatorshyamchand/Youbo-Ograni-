@@ -59,7 +59,7 @@ export const AllGalleryPage = () => {
             <ArrowLeft size={24} />
           </Link>
           <div className="text-2xl font-bold tracking-tight text-emerald-700">
-            à¦¯à§à¦¬ à¦…à¦—à§à¦°à¦£à§€
+            যুব অগ্রণী
           </div>
         </div>
       </nav>
@@ -80,7 +80,7 @@ export const AllGalleryPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight leading-tight"
           >
-            à¦¸à¦®à§à¦ªà§‚à¦°à§à¦£ à¦—à§à¦¯à¦¾à¦²à¦¾à¦°à¦¿
+            সম্পূর্ণ গ্যালারি
           </motion.h1>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -94,7 +94,7 @@ export const AllGalleryPage = () => {
             transition={{ delay: 0.2 }}
             className="text-xl text-emerald-100 font-medium max-w-3xl mx-auto"
           >
-            à¦†à¦®à¦¾à¦¦à§‡à¦° à¦¸à¦®à¦¾à¦œ à¦—à¦ à¦¨à§‡à¦° à¦ªà§à¦°à¦¤à¦¿à¦Ÿà¦¿ à¦®à§à¦¹à§‚à¦°à§à¦¤à§‡à¦° à¦›à¦¬à¦¿
+            আমাদের সমাজ গঠনের প্রতিটি মুহূর্তের ছবি
           </motion.p>
         </div>
       </div>
@@ -102,7 +102,7 @@ export const AllGalleryPage = () => {
       {/* Gallery Grid */}
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
         {images.length === 0 ? (
-          <div className="text-center text-gray-500 py-12 text-lg">à¦•à§‹à¦¨à§‹ à¦›à¦¬à¦¿ à¦ªà¦¾à¦“à§Ÿà¦¾ à¦¯à¦¾à§Ÿà¦¨à¦¿à¥¤</div>
+          <div className="text-center text-gray-500 py-12 text-lg">কোনো ছবি পাওয়া যায়নি।</div>
         ) : (
           <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
             {images.map((img, idx) => (
