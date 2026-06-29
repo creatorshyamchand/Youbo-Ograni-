@@ -81,6 +81,8 @@ export const Footer = () => {
     <footer className="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">যুব অগ্রণী</h2>
+        <p className="text-emerald-400 mb-2 font-medium tracking-wide uppercase">Youbo Ogroni Social And Welfare Trust</p>
+        <p className="text-gray-300 font-bold mb-4 bg-gray-800 inline-block px-4 py-2 rounded-lg border border-gray-700">Registration Number : 121500026/25</p>
         <p className="text-gray-400 mb-8 max-w-sm mx-auto">তরুণ প্রজন্মের হাত ধরে নতুন সমাজ গঠন</p>
         
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-8">
