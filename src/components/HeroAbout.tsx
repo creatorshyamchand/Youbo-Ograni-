@@ -17,6 +17,13 @@ export const Hero = () => {
     <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 text-white min-h-[90vh] flex items-center">
       <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <motion.p 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-emerald-200 text-lg md:text-xl font-medium tracking-wider uppercase mb-4"
+        >
+          Youbo Ogroni Social And Welfare Trust
+        </motion.p>
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -55,7 +62,7 @@ export const About = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">আমাদের সম্পর্কে</h2>
           <div className="w-24 h-1 bg-emerald-500 mx-auto rounded-full mb-8"></div>
           <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-            যুব অগ্রণী (Youbo Ogroni) একটি যুব-চালিত সামাজিক সংগঠন, যা তরুণ প্রজন্মের সক্রিয় অংশগ্রহণের মাধ্যমে সমাজে ইতিবাচক পরিবর্তন আনার লক্ষ্যে প্রতিষ্ঠিত হয়েছে।
+            যুব অগ্রণী (youbo Ogroni) একটি যুব-চালিত সামাজিক সংগঠন, যা তরুণ প্রজন্মের সক্রিয় অংশগ্রহণের মাধ্যমে সমাজে ইতিবাচক পরিবর্তন আনার লক্ষ্যে প্রতিষ্ঠিত হয়েছে।
           </p>
           <p className="text-lg text-gray-700 leading-relaxed">
             আমাদের সংগঠন শিক্ষা সহায়তা, বৃক্ষরোপণের মাধ্যমে পরিবেশ সংরক্ষণ এবং সম্প্রদায় গঠনের মতো বিভিন্ন ফ্রন্টে অক্লান্তভাবে কাজ করে যাচ্ছে।
@@ -157,6 +164,9 @@ export const Highlight = () => {
           >
             <Leaf className="w-20 h-20 text-emerald-400 mx-auto mb-8" />
           </motion.div>
+          <p className="text-emerald-200 text-lg md:text-xl font-medium tracking-wider uppercase mb-2">
+            Youbo Ogroni Social And Welfare Trust
+          </p>
           <h2 className="text-3xl md:text-5xl font-bold mb-8">বৃক্ষরোপণ অভিযান</h2>
           <p className="text-xl md:text-2xl text-emerald-100/90 leading-relaxed font-medium">
             যুব অগ্রণী নিয়মিতভাবে স্থানীয় এলাকায় বৃক্ষরোপণ অভিযানের আয়োজন করে থাকে। স্থানীয় বাসিন্দাদের মধ্যে বিনামূল্যে চারাগাছ বিতরণ এবং যুবসমাজের মাঝে পরিবেশ সংরক্ষণ সম্পর্কে সচেতনতা বৃদ্ধি করা আমাদের অন্যতম প্রধান লক্ষ্য।
