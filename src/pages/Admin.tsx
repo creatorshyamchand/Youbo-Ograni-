@@ -28,7 +28,7 @@ export const AdminPanel = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      setError('à¦²à¦—à¦‡à¦¨ à¦¬à§à¦¯à¦°à§à¦¥ à¦¹à¦¯à¦¼à§‡à¦›à§‡à¥¤ à¦‡à¦®à§‡à¦‡à¦² à¦¬à¦¾ à¦ªà¦¾à¦¸à¦“à¦¯à¦¼à¦¾à¦°à§à¦¡ à¦­à§à¦²à¥¤');
+      setError('লগইন ব্যর্থ হয়েছে। ইমেইল বা পাসওয়ার্ড ভুল।');
     }
   };
 
@@ -40,19 +40,19 @@ export const AdminPanel = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
         <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
-          <h2 className="text-3xl font-bold text-center mb-8 text-emerald-900">à¦…à§à¦¯à¦¾à¦¡à¦®à¦¿à¦¨ à¦ªà§à¦¯à¦¾à¦¨à§‡à¦²</h2>
+          <h2 className="text-3xl font-bold text-center mb-8 text-emerald-900">অ্যাডমিন প্যানেল</h2>
           {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">à¦‡à¦®à§‡à¦‡à¦²</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ইমেইল</label>
               <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">à¦ªà¦¾à¦¸à¦“à¦¯à¦¼à¦¾à¦°à§à¦¡</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড</label>
               <input required type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
             </div>
             <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition-colors">
-              à¦²à¦—à¦‡à¦¨ à¦•à¦°à§à¦¨
+              লগইন করুন
             </button>
           </form>
         </div>
@@ -65,8 +65,8 @@ export const AdminPanel = () => {
       {/* Sidebar - Desktop */}
       <div className="hidden md:flex w-64 bg-emerald-900 text-white flex-col">
         <div className="p-6">
-          <h2 className="text-2xl font-bold">à¦¯à§à¦¬ à¦…à¦—à§à¦°à¦£à§€</h2>
-          <p className="text-emerald-300 text-sm">à¦…à§à¦¯à¦¾à¦¡à¦®à¦¿à¦¨ à¦ªà§à¦¯à¦¾à¦¨à§‡à¦²</p>
+          <h2 className="text-2xl font-bold">যুব অগ্রণী</h2>
+          <p className="text-emerald-300 text-sm">অ্যাডমিন প্যানেল</p>
         </div>
         <nav className="flex-1 px-4 space-y-2">
           <NavItem icon={<LayoutDashboard />} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
@@ -77,7 +77,7 @@ export const AdminPanel = () => {
         <div className="p-4 border-t border-emerald-800">
           <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-emerald-200 hover:text-white hover:bg-emerald-800 rounded-lg transition-colors">
             <LogOut size={20} />
-            <span>à¦²à¦—à¦†à¦‰à¦Ÿ</span>
+            <span>লগআউট</span>
           </button>
         </div>
       </div>
@@ -185,23 +185,23 @@ const ControlTab = () => {
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Control Panel</h2>
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold mb-6 border-b pb-4">à¦†à¦®à¦¾à¦¦à§‡à¦° à¦ªà§à¦°à¦­à¦¾à¦¬ - à¦¸à§à¦Ÿà§à¦¯à¦¾à¦Ÿà¦¸ à¦ªà¦°à¦¿à¦¬à¦°à§à¦¤à¦¨</h3>
+        <h3 className="text-lg font-bold mb-6 border-b pb-4">আমাদের প্রভাব - স্ট্যাটস পরিবর্তন</h3>
         <form onSubmit={handleSave} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¸à¦•à§à¦°à¦¿à¦¯à¦¼ à¦¸à¦¦à¦¸à§à¦¯ (Members)</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">সক্রিয় সদস্য (Members)</label>
               <input type="number" value={stats.members} onChange={e => setStats({...stats, members: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¶à¦¿à¦•à§à¦·à¦¾à¦°à§à¦¥à§€ à¦ªà§à¦°à¦¸à§à¦•à§ƒà¦¤</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">শিক্ষার্থী পুরস্কৃত</label>
               <input type="number" value={stats.puruskrito} onChange={e => setStats({...stats, puruskrito: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¬à§ƒà¦•à§à¦·à¦°à§‹à¦ªà¦£</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">বৃক্ষরোপণ</label>
               <input type="number" value={stats.brikho} onChange={e => setStats({...stats, brikho: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">à¦¸à¦«à¦² à¦…à¦¨à§à¦·à§à¦ à¦¾à¦¨</label>
+              <label className="block text-sm font-medium mb-2 text-gray-700">সফল অনুষ্ঠান</label>
               <input type="number" value={stats.onusthan} onChange={e => setStats({...stats, onusthan: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
           </div>
@@ -237,7 +237,7 @@ const AddImagesTab = () => {
     if (!currentStatus) {
       const shownCount = gallery.filter(g => g.showInHome).length;
       if (shownCount >= 10) {
-        alert('10 images are âœ“ ticked to show in home page. If you want to add this, then remove one.');
+        alert('10 images are ✓ ticked to show in home page. If you want to add this, then remove one.');
         return;
       }
     }
@@ -406,7 +406,7 @@ const MemberModal = ({ onClose, member }: any) => {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" placeholder="Name" required value={name} onChange={e=>setName(e.target.value)} className="w-full p-3 border rounded-lg" />
-          <input type="text" placeholder="Role (e.g. à¦¸à¦­à¦¾à¦ªà¦¤à¦¿)" required value={role} onChange={e=>setRole(e.target.value)} className="w-full p-3 border rounded-lg" />
+          <input type="text" placeholder="Role (e.g. সভাপতি)" required value={role} onChange={e=>setRole(e.target.value)} className="w-full p-3 border rounded-lg" />
           <textarea placeholder="Description" required value={desc} onChange={e=>setDesc(e.target.value)} className="w-full p-3 border rounded-lg" rows={3} />
           
           <div>
@@ -434,7 +434,7 @@ const GalleryModal = ({ onClose, galleryCount }: any) => {
 
   const handleToggle = () => {
     if (!showInHome && galleryCount >= 10) {
-      alert('10 images are âœ“ ticked to show in home page. If you want to add this, then remove one.');
+      alert('10 images are ✓ ticked to show in home page. If you want to add this, then remove one.');
       return;
     }
     setShowInHome(!showInHome);
