@@ -13,6 +13,7 @@ export const AdminPanel = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showImgbbModal, setShowImgbbModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -83,14 +84,22 @@ export const AdminPanel = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <div className="absolute top-4 right-4 md:top-8 md:right-8 z-40">
+          <button onClick={() => setShowImgbbModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-md transition-colors text-sm md:text-base">
+            Get Imgbb Link
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-16 md:pt-8 pb-24 md:pb-8">
           {activeTab === 'dashboard' && <DashboardTab />}
           {activeTab === 'control' && <ControlTab />}
           {activeTab === 'add-images' && <AddImagesTab />}
           {activeTab === 'form-lookup' && <FormLookupTab />}
         </div>
       </div>
+
+      {showImgbbModal && <ImgbbModal onClose={() => setShowImgbbModal(false)} />}
 
       {/* Bottom Nav - Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
@@ -482,6 +491,110 @@ const GalleryModal = ({ onClose, galleryCount }: any) => {
 
           <button disabled={loading} type="submit" className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold mt-4">{loading ? 'Saving...' : 'Add Image'}</button>
         </form>
+      </div>
+    </div>
+  );
+};
+
+const ImgbbModal = ({ onClose }: any) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState('');
+
+  const handleUpload = async (e: any) => {
+    e.preventDefault();
+    if (!file) return alert('Please select an image first.');
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const res = await fetch('https://api.imgbb.com/1/upload?key=8fb0a4e707c858edd73349d5cf4f6e14', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setUploadedUrl(data.data.url);
+      } else {
+        alert('Upload failed: ' + data.error.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading to ImgBB.');
+    }
+    setLoading(false);
+  };
+
+  const handleReset = () => {
+    setFile(null);
+    setUploadedUrl('');
+    // Reset file input
+    const fileInput = document.getElementById('imgbb-upload') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 z-[60]">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="flex justify-between mb-6">
+          <h3 className="font-bold text-xl text-emerald-900">Get Imgbb Link</h3>
+          <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-800"><X/></button>
+        </div>
+        
+        {uploadedUrl ? (
+          <div className="space-y-4">
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+              <p className="text-sm font-bold text-emerald-700 mb-2">Image Uploaded Successfully!</p>
+              <img src={uploadedUrl} alt="Uploaded" className="w-32 h-32 object-cover mx-auto rounded-lg shadow-sm mb-3 border border-emerald-100" />
+              <input 
+                type="text" 
+                readOnly 
+                value={uploadedUrl} 
+                className="w-full p-2 text-sm border rounded bg-white text-gray-700 text-center mb-2 outline-none"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button 
+                type="button"
+                onClick={() => { navigator.clipboard.writeText(uploadedUrl); alert('Link Copied!'); }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium text-sm transition-colors"
+              >
+                Copy Link
+              </button>
+            </div>
+            <button type="button" onClick={handleReset} className="w-full border border-emerald-600 text-emerald-700 py-3 rounded-lg font-bold hover:bg-emerald-50 transition-colors">
+              Upload New Image
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleUpload} className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-emerald-500 transition-colors cursor-pointer bg-gray-50 relative">
+              <input 
+                id="imgbb-upload"
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+              />
+              {file ? (
+                <div className="text-emerald-600 font-medium break-all">{file.name}</div>
+              ) : (
+                <div className="text-gray-500">
+                  <ImagePlus className="mx-auto mb-2 text-gray-400" size={32} />
+                  <p className="font-medium text-sm">Click to browse or drag image here</p>
+                </div>
+              )}
+            </div>
+            <button 
+              disabled={loading || !file} 
+              type="submit" 
+              className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+            >
+              {loading ? 'Uploading...' : 'Get Link'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
