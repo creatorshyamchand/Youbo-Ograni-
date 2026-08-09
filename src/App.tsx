@@ -6,6 +6,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Navbar, Footer, BackToTop } from './components/Layout';
 import { Hero, About, Highlight } from './components/HeroAbout';
+import { StayUpdated } from './components/StayUpdated';
 import { Work, Members } from './components/WorkMembers';
 import { Gallery, Contact } from './components/GalleryContact';
 import { FutureGoals } from './components/FutureGoals';
@@ -19,6 +20,7 @@ function MainSite() {
       <main>
         <section id="home"><Hero /></section>
         <section id="about"><About /></section>
+        <section id="updates"><StayUpdated /></section>
         <section id="work"><Work /></section>
         <section id="members"><Members /></section>
         <section id="gallery"><Gallery /></section>

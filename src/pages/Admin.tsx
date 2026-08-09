@@ -3,7 +3,7 @@ import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square, Edit } from 'lucide-react';
+import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square, Edit, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AdminPanel = () => {
@@ -14,6 +14,8 @@ export const AdminPanel = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showImgbbModal, setShowImgbbModal] = useState(false);
+  const [showMemberModalFromImgbb, setShowMemberModalFromImgbb] = useState(false);
+  const [imgbbUploadedUrl, setImgbbUploadedUrl] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -85,13 +87,14 @@ export const AdminPanel = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <div className="absolute top-4 right-4 md:top-8 md:right-8 z-40">
-          <button onClick={() => setShowImgbbModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-md transition-colors text-sm md:text-base">
+        <div className="absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-8 z-40 flex items-center justify-between">
+          <h2 className="text-xl md:text-2xl font-bold text-emerald-900">Youbo Ogroni</h2>
+          <button onClick={() => setShowImgbbModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-medium shadow-md transition-colors text-sm md:text-base whitespace-nowrap ml-2">
             Get Imgbb Link
           </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-16 md:pt-8 pb-24 md:pb-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-16 md:pt-20 pb-24 md:pb-8">
           {activeTab === 'dashboard' && <DashboardTab />}
           {activeTab === 'control' && <ControlTab />}
           {activeTab === 'add-images' && <AddImagesTab />}
@@ -99,7 +102,26 @@ export const AdminPanel = () => {
         </div>
       </div>
 
-      {showImgbbModal && <ImgbbModal onClose={() => setShowImgbbModal(false)} />}
+      {showImgbbModal && (
+        <ImgbbModal 
+          onClose={() => setShowImgbbModal(false)} 
+          onAddAsMember={(url: string) => {
+            setImgbbUploadedUrl(url);
+            setShowImgbbModal(false);
+            setShowMemberModalFromImgbb(true);
+          }}
+        />
+      )}
+      
+      {showMemberModalFromImgbb && (
+        <MemberModal 
+          onClose={() => {
+            setShowMemberModalFromImgbb(false);
+            setImgbbUploadedUrl('');
+          }} 
+          member={{ image: imgbbUploadedUrl }} 
+        />
+      )}
 
       {/* Bottom Nav - Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
@@ -227,17 +249,21 @@ const AddImagesTab = () => {
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [editingMember, setEditingMember] = useState<any>(null);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
   const [gallery, setGallery] = useState<any[]>([]);
+  const [updates, setUpdates] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubM = onSnapshot(collection(db, 'members'), (snap) => setMembers(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubG = onSnapshot(collection(db, 'gallery'), (snap) => setGallery(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-    return () => { unsubM(); unsubG(); };
+    const qU = query(collection(db, 'updates'), orderBy('createdAt', 'desc'));
+    const unsubU = onSnapshot(qU, (snap) => setUpdates(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    return () => { unsubM(); unsubG(); unsubU(); };
   }, []);
 
   const deleteDocItem = async (col: string, id: string) => {
-    if(confirm('Are you sure you want to delete this?')) {
+    if(confirm('Are you sure you want to delete this item?')) {
       await deleteDoc(doc(db, col, id));
     }
   };
@@ -255,7 +281,50 @@ const AddImagesTab = () => {
 
   return (
     <div className="space-y-12">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Images & content</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Images & Content</h2>
+
+      {/* Updates Section */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Stay Updated Posts ({updates.length})</h3>
+            <p className="text-xs text-gray-500">Add news, trust updates, and photos with live preview</p>
+          </div>
+          <button onClick={() => setShowUpdateModal(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium shadow-sm transition-colors">
+            <Plus size={18} /> Add New Update
+          </button>
+        </div>
+
+        {updates.length === 0 ? (
+          <div className="bg-white p-8 rounded-2xl border text-center text-gray-500">
+            No update posts created yet. Click "Add New Update" above to create one.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {updates.map(u => (
+              <div key={u.id} className="bg-white p-5 rounded-2xl border relative group flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+                <button onClick={() => deleteDocItem('updates', u.id)} className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-white p-1.5 rounded-full z-10 shadow-md">
+                  <X size={16}/>
+                </button>
+                <div>
+                  <h4 className="font-bold text-gray-900 pr-8 text-lg mb-1">{u.title}</h4>
+                  <p className="text-xs text-emerald-700 font-semibold mb-2">
+                    📅 {u.createdAt ? format(u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt), 'PPP, p') : 'Just now'}
+                  </p>
+                  <p className="text-sm text-gray-600 line-clamp-3 mb-4">{u.description}</p>
+                </div>
+                {u.images && u.images.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1 border-t pt-3">
+                    {u.images.map((imgUrl: string, idx: number) => (
+                      <img key={idx} src={imgUrl} alt={`Thumb ${idx}`} className="w-14 h-14 object-cover rounded-lg border flex-shrink-0" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       
       {/* Members Section */}
       <div>
@@ -307,6 +376,7 @@ const AddImagesTab = () => {
 
       {showMemberModal && <MemberModal onClose={() => setShowMemberModal(false)} member={editingMember} />}
       {showGalleryModal && <GalleryModal onClose={() => setShowGalleryModal(false)} galleryCount={gallery.filter(g => g.showInHome).length} />}
+      {showUpdateModal && <UpdateModal onClose={() => setShowUpdateModal(false)} />}
     </div>
   );
 };
@@ -496,7 +566,7 @@ const GalleryModal = ({ onClose, galleryCount }: any) => {
   );
 };
 
-const ImgbbModal = ({ onClose }: any) => {
+const ImgbbModal = ({ onClose, onAddAsMember }: any) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState('');
@@ -527,6 +597,20 @@ const ImgbbModal = ({ onClose }: any) => {
     setLoading(false);
   };
 
+  const handleAddAsGallery = async () => {
+    if(!uploadedUrl) return;
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'gallery'), { src: uploadedUrl, createdAt: new Date(), showInHome: false });
+      alert('Image added to gallery!');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to add to gallery.');
+    }
+    setLoading(false);
+  };
+
   const handleReset = () => {
     setFile(null);
     setUploadedUrl('');
@@ -536,8 +620,8 @@ const ImgbbModal = ({ onClose }: any) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 z-[60]">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 z-[60] overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 my-8">
         <div className="flex justify-between mb-6">
           <h3 className="font-bold text-xl text-emerald-900">Get Imgbb Link</h3>
           <button type="button" onClick={onClose} className="text-gray-500 hover:text-gray-800"><X/></button>
@@ -558,10 +642,28 @@ const ImgbbModal = ({ onClose }: any) => {
               <button 
                 type="button"
                 onClick={() => { navigator.clipboard.writeText(uploadedUrl); alert('Link Copied!'); }}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium text-sm transition-colors"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium text-sm transition-colors mb-2"
               >
                 Copy Link
               </button>
+              
+              <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-emerald-200">
+                <button 
+                  disabled={loading}
+                  type="button" 
+                  onClick={handleAddAsGallery}
+                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+                >
+                  Add as a gallery image
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => onAddAsMember(uploadedUrl)}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium text-sm transition-colors"
+                >
+                  Add as a member
+                </button>
+              </div>
             </div>
             <button type="button" onClick={handleReset} className="w-full border border-emerald-600 text-emerald-700 py-3 rounded-lg font-bold hover:bg-emerald-50 transition-colors">
               Upload New Image
@@ -595,6 +697,235 @@ const ImgbbModal = ({ onClose }: any) => {
             </button>
           </form>
         )}
+      </div>
+    </div>
+  );
+};
+
+const UpdateModal = ({ onClose }: any) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [images, setImages] = useState<string[]>(['']);
+  const [loading, setLoading] = useState(false);
+  const [previewImgIndex, setPreviewImgIndex] = useState(0);
+
+  const validImages = images.map(i => i.trim()).filter(i => i.length > 0);
+
+  useEffect(() => {
+    if (validImages.length <= 1) return;
+    const timer = setInterval(() => {
+      setPreviewImgIndex(prev => (prev + 1) % validImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [validImages.length]);
+
+  const handleAddImageField = () => {
+    if (images.length >= 10) {
+      alert('Maximum 10 images allowed per update post.');
+      return;
+    }
+    setImages([...images, '']);
+  };
+
+  const handleRemoveImageField = (index: number) => {
+    if (images.length <= 1) return;
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  const handleImageChange = (index: number, value: string) => {
+    const updated = [...images];
+    updated[index] = value;
+    setImages(updated);
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!title.trim()) return alert('Please enter a title');
+    const filteredImages = images.map(i => i.trim()).filter(i => i.length > 0);
+    if (filteredImages.length === 0) return alert('Please enter at least 1 image URL');
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'updates'), {
+        title: title.trim(),
+        description: description.trim(),
+        images: filteredImages,
+        createdAt: new Date(),
+      });
+      alert('Update post published successfully!');
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to publish update post.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-4xl p-6 md:p-8 my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center border-b pb-4 mb-6">
+          <div>
+            <h3 className="font-bold text-2xl text-emerald-900">Add New Update Post</h3>
+            <p className="text-xs text-gray-500">Live preview update post below as you type</p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-500 hover:text-gray-800 rounded-full hover:bg-gray-100">
+            <X size={24}/>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Title (শিরোনাম)</label>
+              <input
+                type="text"
+                placeholder="Enter update title..."
+                required
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-base"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Description (বিস্তারিত)</label>
+              <textarea
+                placeholder="Enter update description text..."
+                required
+                rows={4}
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-base"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-bold text-gray-700">
+                  Image Links (Max 10)
+                </label>
+                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
+                  {images.length}/10
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-48 overflow-y-auto p-1">
+                {images.map((imgUrl, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <span className="text-xs font-bold text-gray-400 w-5">{idx + 1}.</span>
+                    <input
+                      type="url"
+                      placeholder="https://i.ibb.co/... (paste ImgBB or image URL)"
+                      value={imgUrl}
+                      onChange={e => handleImageChange(idx, e.target.value)}
+                      className="flex-1 p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                    {images.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImageField(idx)}
+                        className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove image field"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {images.length < 10 && (
+                <button
+                  type="button"
+                  onClick={handleAddImageField}
+                  className="mt-3 text-emerald-700 hover:text-emerald-800 font-bold text-sm flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Plus size={18} /> Add More Image Link ({images.length}/10)
+                </button>
+              )}
+            </div>
+
+            <button
+              disabled={loading}
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3.5 rounded-xl font-bold text-base shadow-md disabled:opacity-50 transition-colors mt-6"
+            >
+              {loading ? 'Publishing Post...' : 'Publish Update Post'}
+            </button>
+          </form>
+
+          {/* Real-Time Live Preview */}
+          <div className="bg-gray-50 p-4 md:p-6 rounded-2xl border border-gray-200 flex flex-col">
+            <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Eye size={16} /> Real-Time Live Preview
+            </h4>
+
+            <div className="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden flex-1 flex flex-col justify-between">
+              <div>
+                {/* Title */}
+                <div className="p-4 bg-gradient-to-r from-emerald-800 to-teal-800 text-white">
+                  <span className="text-[10px] font-bold bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full uppercase">Preview</span>
+                  <h5 className="font-bold text-lg leading-snug mt-1">
+                    {title || 'Update Title Preview'}
+                  </h5>
+                </div>
+
+                {/* Image Slide Preview */}
+                <div className="relative bg-black h-48 flex items-center justify-center overflow-hidden">
+                  {validImages.length > 0 ? (
+                    <>
+                      <img
+                        src={validImages[previewImgIndex % validImages.length]}
+                        alt="Preview"
+                        className="w-full h-full object-contain"
+                        onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800')}
+                      />
+                      {validImages.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImgIndex((prev) => (prev - 1 + validImages.length) % validImages.length)}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-1.5 rounded-full"
+                          >
+                            <ChevronLeft size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImgIndex((prev) => (prev + 1) % validImages.length)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-1.5 rounded-full"
+                          >
+                            <ChevronRight size={16} />
+                          </button>
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">
+                            {(previewImgIndex % validImages.length) + 1} / {validImages.length}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-gray-400 text-xs text-center p-4">
+                      Add an image URL to see image carousel preview
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div className="p-4">
+                  <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">
+                    {description || 'Update description text will appear here as you type...'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Date */}
+              <div className="p-4 border-t border-gray-100 text-xs text-gray-500 font-medium">
+                📅 {format(new Date(), 'PPP, p')}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

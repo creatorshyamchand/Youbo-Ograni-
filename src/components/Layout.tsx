@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 const navLinks = [
   { id: 'home', label: 'হোম' },
   { id: 'about', label: 'আমাদের সম্পর্কে' },
+  { id: 'updates', label: 'আপডেটসমূহ' },
   { id: 'work', label: 'আমাদের কাজ' },
   { id: 'members', label: 'সদস্যবৃন্দ' },
   { id: 'gallery', label: 'গ্যালারি' },

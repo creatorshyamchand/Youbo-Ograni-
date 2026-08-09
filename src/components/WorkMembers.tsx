@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const workStories = [
   {
@@ -112,7 +113,7 @@ export const Members = () => {
     if (members.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % members.length);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [members.length]);
 
@@ -175,15 +176,24 @@ export const Members = () => {
             </AnimatePresence>
           </div>
 
-          <div className="flex justify-center mt-10 space-x-3">
-            {members.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                className={`h-3 rounded-full transition-all duration-300 ${idx === currentIndex ? 'bg-emerald-500 w-10' : 'bg-gray-300 w-3 hover:bg-emerald-300'}`}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
-            ))}
+          <div className="flex justify-center items-center mt-8 gap-6">
+            <button
+              onClick={() => setCurrentIndex((prev) => (prev - 1 + members.length) % members.length)}
+              className="bg-white hover:bg-emerald-50 text-emerald-800 p-3 rounded-full border border-emerald-200 shadow-md hover:shadow-lg transition-all"
+              aria-label="Previous member"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <span className="text-sm font-bold text-gray-700 bg-white px-4 py-1.5 rounded-full border border-gray-200 shadow-sm">
+              {currentIndex + 1} / {members.length}
+            </span>
+            <button
+              onClick={() => setCurrentIndex((prev) => (prev + 1) % members.length)}
+              className="bg-white hover:bg-emerald-50 text-emerald-800 p-3 rounded-full border border-emerald-200 shadow-md hover:shadow-lg transition-all"
+              aria-label="Next member"
+            >
+              <ChevronRight size={24} />
+            </button>
           </div>
         </div>
       </div>

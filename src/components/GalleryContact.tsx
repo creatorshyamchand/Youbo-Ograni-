@@ -91,7 +91,7 @@ export const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setSubmitting(true);
     try {
@@ -150,7 +150,7 @@ export const Contact = () => {
               </button>
             </form>
             <div className="mt-8 text-center border-t border-gray-100 pt-6">
-               <a href="https://Instagram.com/creator_shyamchand_07" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by Youbo Ogroni Social And Welfare Trust</a>
+               <a href="https://dictationer.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by dictationer.com</a>
             </div>
           </div>
 
@@ -177,7 +177,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 text-white">ফোন</h4>
-                    <p className="text-emerald-50 text-lg">+91 9134002625</p>
+                    <p className="text-emerald-50 text-lg">+91 9876543210</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-5">
@@ -186,7 +186,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-xl mb-2 text-white">ইমেইল</h4>
-                    <p className="text-emerald-50 text-lg">info@youboogroni.org</p>
+                    <p className="text-emerald-50 text-lg">info@youboograni.org</p>
                   </div>
                 </div>
               </div>
