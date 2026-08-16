@@ -3,7 +3,7 @@ import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square, Edit, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Settings, ImagePlus, MessageSquareText, LogOut, Eye, X, CheckSquare, Square, Edit, Plus, Trash2, ChevronLeft, ChevronRight, Video, Play } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const AdminPanel = () => {
@@ -152,7 +152,7 @@ const MobileNavItem = ({ icon, label, active, onClick }: any) => (
 
 const DashboardTab = () => {
   const [stats, setStats] = useState({ members: 0, puruskrito: 0, brikho: 0, onusthan: 0 });
-  const [counts, setCounts] = useState({ totalStories: 0, totalImages: 0, totalForms: 0 });
+  const [counts, setCounts] = useState({ totalStories: 0, totalImages: 0, totalForms: 0, totalVideos: 0 });
 
   useEffect(() => {
     // Fetch user defined stats
@@ -164,18 +164,20 @@ const DashboardTab = () => {
     const unsubMembers = onSnapshot(collection(db, 'members'), (snap) => setCounts(p => ({ ...p, totalStories: snap.size })));
     const unsubGallery = onSnapshot(collection(db, 'gallery'), (snap) => setCounts(p => ({ ...p, totalImages: snap.size })));
     const unsubForms = onSnapshot(collection(db, 'messages'), (snap) => setCounts(p => ({ ...p, totalForms: snap.size })));
+    const unsubVideos = onSnapshot(collection(db, 'keymoments'), (snap) => setCounts(p => ({ ...p, totalVideos: snap.size })));
 
-    return () => { unsubStats(); unsubMembers(); unsubGallery(); unsubForms(); };
+    return () => { unsubStats(); unsubMembers(); unsubGallery(); unsubForms(); unsubVideos(); };
   }, []);
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard title="Total Members" value={stats.members || 0} />
         <StatCard title="Total Onusthan" value={stats.onusthan || 0} />
         <StatCard title="Total Members (Profiles)" value={counts.totalStories} />
         <StatCard title="Total Gallery Images" value={counts.totalImages} />
+        <StatCard title="Key Moments Videos" value={counts.totalVideos} />
         <StatCard title="Total Forms Submitted" value={counts.totalForms} />
       </div>
     </div>
@@ -190,34 +192,480 @@ const StatCard = ({ title, value }: { title: string, value: number | string }) =
 );
 
 const ControlTab = () => {
+  // Stats state
   const [stats, setStats] = useState({ members: '', puruskrito: '', brikho: '', onusthan: '' });
-  const [saving, setSaving] = useState(false);
+  const [savingStats, setSavingStats] = useState(false);
+
+  // Logo state for Key Moments
+  const [logoUrl, setLogoUrl] = useState('');
+  const [savingLogo, setSavingLogo] = useState(false);
+
+  // Key Moments Videos state
+  const [videos, setVideos] = useState<any[]>([]);
+  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
+  const [videoForm, setVideoForm] = useState({
+    filename: '',
+    title: '',
+    text: '',
+    showInHome: false,
+  });
+  const [savingVideo, setSavingVideo] = useState(false);
 
   useEffect(() => {
+    // Fetch stats
     getDoc(doc(db, 'settings', 'stats')).then(snap => {
       if (snap.exists()) setStats(snap.data() as any);
     });
+
+    // Fetch key moments logo
+    getDoc(doc(db, 'settings', 'keymoments')).then(snap => {
+      if (snap.exists() && snap.data().logoUrl) {
+        setLogoUrl(snap.data().logoUrl);
+      }
+    });
+
+    // Listen to keymoments videos
+    const q = query(collection(db, 'keymoments'), orderBy('createdAt', 'desc'));
+    const unsubV = onSnapshot(q, snap => {
+      setVideos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => unsubV();
   }, []);
 
-  const handleSave = async (e: any) => {
+  const handleSaveStats = async (e: any) => {
     e.preventDefault();
-    setSaving(true);
+    setSavingStats(true);
     await setDoc(doc(db, 'settings', 'stats'), {
       members: Number(stats.members),
       puruskrito: Number(stats.puruskrito),
       brikho: Number(stats.brikho),
       onusthan: Number(stats.onusthan)
     });
-    setSaving(false);
+    setSavingStats(false);
     alert('Stats updated successfully!');
   };
 
+  const handleSaveLogo = async (e: any) => {
+    e.preventDefault();
+    setSavingLogo(true);
+    try {
+      await setDoc(doc(db, 'settings', 'keymoments'), { logoUrl: logoUrl.trim() }, { merge: true });
+      alert('Key Moments Logo updated successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update logo.');
+    }
+    setSavingLogo(false);
+  };
+
+  const currentHomeCount = videos.filter(v => v.showInHome && v.id !== editingVideoId).length;
+
+  const handleToggleHome = async (video: any) => {
+    const isEnabling = !video.showInHome;
+    if (isEnabling) {
+      const activeCount = videos.filter(v => v.showInHome).length;
+      if (activeCount >= 2) {
+        alert('Home section a 2 tar besi add kora jabe na! (Maximum 2 videos can be shown on home page). Please uncheck another video first.');
+        return;
+      }
+    }
+    try {
+      await updateDoc(doc(db, 'keymoments', video.id), { showInHome: isEnabling });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update video status');
+    }
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    if (checked && currentHomeCount >= 2) {
+      alert('Home section a 2 tar besi add kora jabe na! (Maximum 2 videos can be shown on home page). Please uncheck another video first.');
+      return;
+    }
+    setVideoForm({ ...videoForm, showInHome: checked });
+  };
+
+  const handleSaveVideo = async (e: any) => {
+    e.preventDefault();
+    if (!videoForm.filename.trim()) return alert('Please enter video filename (e.g. video1.mp4 or URL)');
+    if (!videoForm.title.trim()) return alert('Please enter video title');
+
+    if (videoForm.showInHome && currentHomeCount >= 2) {
+      return alert('Home section a 2 tar besi add kora jabe na! Please uncheck another video first.');
+    }
+
+    setSavingVideo(true);
+    try {
+      const videoData = {
+        filename: videoForm.filename.trim(),
+        title: videoForm.title.trim(),
+        text: videoForm.text.trim(),
+        showInHome: !!videoForm.showInHome,
+        createdAt: new Date(),
+      };
+
+      if (editingVideoId) {
+        await updateDoc(doc(db, 'keymoments', editingVideoId), {
+          filename: videoForm.filename.trim(),
+          title: videoForm.title.trim(),
+          text: videoForm.text.trim(),
+          showInHome: !!videoForm.showInHome,
+        });
+        alert('Video updated successfully!');
+        setEditingVideoId(null);
+      } else {
+        await addDoc(collection(db, 'keymoments'), videoData);
+        alert('Video added to Key Moments successfully!');
+      }
+
+      setVideoForm({
+        filename: '',
+        title: '',
+        text: '',
+        showInHome: false,
+      });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save video.');
+    }
+    setSavingVideo(false);
+  };
+
+  const handleEditVideo = (video: any) => {
+    setEditingVideoId(video.id);
+    setVideoForm({
+      filename: video.filename || '',
+      title: video.title || '',
+      text: video.text || '',
+      showInHome: !!video.showInHome,
+    });
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (confirm('Are you sure you want to delete this video from Key Moments?')) {
+      await deleteDoc(doc(db, 'keymoments', id));
+      if (editingVideoId === id) {
+        setEditingVideoId(null);
+        setVideoForm({ filename: '', title: '', text: '', showInHome: false });
+      }
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingVideoId(null);
+    setVideoForm({ filename: '', title: '', text: '', showInHome: false });
+  };
+
+  const resolveVideoUrlPreview = (fn: string) => {
+    if (!fn) return '';
+    const trimmed = fn.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) return trimmed;
+    if (trimmed.startsWith('/')) return trimmed;
+    return `/keymom/${trimmed}`;
+  };
+
   return (
-    <div className="max-w-2xl">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Control Panel</h2>
+    <div className="max-w-4xl space-y-12 pb-12">
+      <h2 className="text-2xl font-bold text-gray-900">Control Panel</h2>
+
+      {/* 1. KEY MOMENTS VIDEO SECTION */}
+      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-emerald-100 space-y-8">
+        <div className="border-b pb-4 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-xl font-bold text-emerald-950 flex items-center gap-2">
+              <Video className="text-emerald-600" size={24} />
+              Key Moments - ভিডিও কন্ট্রোল (Add Video)
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">
+              ভিডিও ফাইল <code className="bg-gray-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">/keymom</code> ফোল্ডারে আপলোড করে ফাইলের নাম এখানে দিন।
+            </p>
+          </div>
+          <span className="text-xs font-bold bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-200">
+            Home Visible: {videos.filter(v => v.showInHome).length}/2
+          </span>
+        </div>
+
+        {/* Video Add / Edit Form */}
+        <form onSubmit={handleSaveVideo} className="space-y-5 bg-gray-50/70 p-5 md:p-6 rounded-2xl border border-gray-200">
+          <div className="flex justify-between items-center">
+            <h4 className="font-bold text-gray-800 text-base">
+              {editingVideoId ? 'ভিডিও এডিট করুন (Edit Video)' : 'নতুন ভিডিও যোগ করুন (Add Video)'}
+            </h4>
+            {editingVideoId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="text-xs text-gray-500 hover:text-red-600 font-bold underline"
+              >
+                Cancel Edit
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Filename */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                Filename <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder='e.g. "myvideo.mp4" or "event1.mp4" or URL'
+                value={videoForm.filename}
+                onChange={e => setVideoForm({ ...videoForm, filename: e.target.value })}
+                className="w-full p-3 border rounded-xl bg-white font-mono text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                required
+              />
+              <p className="text-[11px] text-gray-500 mt-1">
+                Target path: <span className="font-mono text-emerald-700">{resolveVideoUrlPreview(videoForm.filename) || '/keymom/filename.mp4'}</span>
+              </p>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder='e.g. "বৃক্ষরোপণ কর্মসূচি - ২০২৩"'
+                value={videoForm.title}
+                onChange={e => setVideoForm({ ...videoForm, title: e.target.value })}
+                className="w-full p-3 border rounded-xl bg-white text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Text / Description */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Text / Description
+            </label>
+            <textarea
+              rows={3}
+              placeholder="ভিডিওটির সংক্ষিপ্ত বিবরণ বা বিস্তারিত লিখুন..."
+              value={videoForm.text}
+              onChange={e => setVideoForm({ ...videoForm, text: e.target.value })}
+              className="w-full p-3 border rounded-xl bg-white text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+          </div>
+
+          {/* Tick button to show in main page */}
+          <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200">
+            <button
+              type="button"
+              onClick={() => handleCheckboxChange(!videoForm.showInHome)}
+              className="flex items-center gap-2 cursor-pointer focus:outline-none"
+            >
+              {videoForm.showInHome ? (
+                <CheckSquare className="text-emerald-600 w-6 h-6 flex-shrink-0" />
+              ) : (
+                <Square className="text-gray-400 w-6 h-6 flex-shrink-0" />
+              )}
+              <span className="text-sm font-bold text-gray-800">
+                Show in main page (মূল পেজে প্রদর্শন করুন)
+              </span>
+            </button>
+            <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded ml-auto font-medium">
+              Home এ সর্বোচ্চ ২টি ভিডিও দেখানো যাবে
+            </span>
+          </div>
+
+          {/* Real-time Preview Area */}
+          {(videoForm.title || videoForm.filename) && (
+            <div className="p-4 bg-white rounded-xl border border-emerald-200 space-y-2">
+              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">
+                Live Video Card Preview:
+              </span>
+              <div className="flex items-start gap-4">
+                <div className="w-24 h-16 bg-black rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 relative">
+                  <video
+                    src={resolveVideoUrlPreview(videoForm.filename)}
+                    className="w-full h-full object-cover opacity-80"
+                    muted
+                  />
+                  <Play size={16} className="absolute fill-white text-white opacity-90" />
+                </div>
+                <div className="flex-1">
+                  <h5 className="font-bold text-gray-900 text-sm line-clamp-1">
+                    {videoForm.title || 'Video Title'}
+                  </h5>
+                  <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
+                    {videoForm.text || 'Description preview will show here...'}
+                  </p>
+                  <p className="text-[10px] text-gray-400 font-mono mt-1">
+                    Src: {resolveVideoUrlPreview(videoForm.filename)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={savingVideo}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-sm hover:shadow transition-colors disabled:opacity-50 text-sm flex items-center gap-2"
+            >
+              <Plus size={18} />
+              <span>{savingVideo ? 'Saving...' : editingVideoId ? 'Update Video' : 'Save Video'}</span>
+            </button>
+            {editingVideoId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="px-5 py-3 rounded-xl border border-gray-300 text-gray-600 font-bold text-sm hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* Existing Videos List */}
+        <div className="space-y-4">
+          <h4 className="font-bold text-gray-800 text-base flex items-center justify-between">
+            <span>All Key Moments Videos ({videos.length})</span>
+            <span className="text-xs text-gray-500 font-normal">
+              Click checkbox to toggle visibility on Home (Max 2)
+            </span>
+          </h4>
+
+          {videos.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6 bg-gray-50 rounded-xl border border-dashed">
+              No videos added yet. Fill out the form above to add your first video.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {videos.map((vid, i) => (
+                <div
+                  key={vid.id}
+                  className={`p-4 rounded-2xl border transition-all ${
+                    vid.showInHome ? 'border-emerald-500 bg-emerald-50/40' : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <div className="flex-1">
+                      <span className="text-[10px] font-bold text-gray-400">#{i + 1}</span>
+                      <h5 className="font-bold text-gray-900 text-sm line-clamp-1">{vid.title}</h5>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleEditVideo(vid)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit video"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteVideo(vid.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete video"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-600 line-clamp-2 mb-3">{vid.text}</p>
+                  
+                  <div className="text-[11px] font-mono text-gray-400 truncate mb-3 bg-gray-100 p-1.5 rounded">
+                    📁 {vid.filename}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleHome(vid)}
+                      className="flex items-center gap-1.5 text-xs font-bold"
+                    >
+                      {vid.showInHome ? (
+                        <>
+                          <CheckSquare size={16} className="text-emerald-600" />
+                          <span className="text-emerald-800">Shown in Home (Visible)</span>
+                        </>
+                      ) : (
+                        <>
+                          <Square size={16} className="text-gray-400" />
+                          <span className="text-gray-500 hover:text-gray-800">Show in Home</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. KEY MOMENTS LOGO SETTING */}
+      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-emerald-100 space-y-6">
+        <div className="border-b pb-3">
+          <h3 className="text-lg font-bold text-gray-900">
+            Key Moments পেজের জন্য Youbo Ogroni লোগো
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Add logo of Youbo Ogroni only for Key Moments video player page.
+          </p>
+        </div>
+
+        <form onSubmit={handleSaveLogo} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Logo Image URL (লোগোর লিংক)
+            </label>
+            <input
+              type="url"
+              placeholder="https://i.ibb.co/... or image URL"
+              value={logoUrl}
+              onChange={e => setLogoUrl(e.target.value)}
+              className="w-full p-3 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              ImgBB বা যেকোনো ইমেজ লিংক এখানে পেস্ট করুন।
+            </p>
+          </div>
+
+          {/* Logo Circle Preview */}
+          <div className="flex items-center gap-4 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200">
+            <div className="w-14 h-14 rounded-full border-2 border-emerald-600 bg-white overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo Preview" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+              ) : (
+                <div className="w-full h-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xs">
+                  YO
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Preview Display:</p>
+              <h5 className="font-bold text-emerald-950 text-sm">
+                Youbo Ogroni Social and Walfare Trust
+              </h5>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={savingLogo}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+          >
+            {savingLogo ? 'Saving Logo...' : 'Save Logo'}
+          </button>
+        </form>
+      </div>
+
+      {/* 3. STATS SETTING */}
       <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-bold mb-6 border-b pb-4">আমাদের প্রভাব - স্ট্যাটস পরিবর্তন</h3>
-        <form onSubmit={handleSave} className="space-y-6">
+        <form onSubmit={handleSaveStats} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700">সক্রিয় সদস্য (Members)</label>
@@ -236,8 +684,8 @@ const ControlTab = () => {
               <input type="number" value={stats.onusthan} onChange={e => setStats({...stats, onusthan: e.target.value})} className="w-full p-3 border rounded-lg" required />
             </div>
           </div>
-          <button type="submit" disabled={saving} className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-700 disabled:opacity-50">
-            {saving ? 'Saving...' : 'Save Changes'}
+          <button type="submit" disabled={savingStats} className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-700 disabled:opacity-50">
+            {savingStats ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </div>

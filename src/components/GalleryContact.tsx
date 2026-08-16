@@ -150,7 +150,7 @@ export const Contact = () => {
               </button>
             </form>
             <div className="mt-8 text-center border-t border-gray-100 pt-6">
-               <a href="https://www.facebook.com/share/1CpJRT7cPK/" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-emerald-600 font-medium transition-colors">Powered by Youbo Ogroni Social And Walfare Trust</a>
+               <p className="text-sm text-gray-400 font-medium transition-colors">Powered by Youbo Ogroni Social And Walfare Trust</p>
             </div>
           </div>
 
