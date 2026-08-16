@@ -288,7 +288,7 @@ const ControlTab = () => {
 
   const handleSaveVideo = async (e: any) => {
     e.preventDefault();
-    if (!videoForm.filename.trim()) return alert('Please enter video filename (e.g. video1.mp4 or URL)');
+    if (!videoForm.filename.trim()) return alert('Please enter video URL (e.g. https://...)');
     if (!videoForm.title.trim()) return alert('Please enter video title');
 
     if (videoForm.showInHome && currentHomeCount >= 2) {
@@ -360,10 +360,7 @@ const ControlTab = () => {
 
   const resolveVideoUrlPreview = (fn: string) => {
     if (!fn) return '';
-    const trimmed = fn.trim();
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) return trimmed;
-    if (trimmed.startsWith('/')) return trimmed;
-    return `/keymom/${trimmed}`;
+    return fn.trim();
   };
 
   return (
@@ -379,7 +376,7 @@ const ControlTab = () => {
               Key Moments - ভিডিও কন্ট্রোল (Add Video)
             </h3>
             <p className="text-xs text-gray-500 mt-1">
-              ভিডিও ফাইল <code className="bg-gray-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">/keymom</code> ফোল্ডারে আপলোড করে ফাইলের নাম এখানে দিন।
+              যে কোনো পাবলিক সার্ভার (যেমন imgbb বা অন্য কোনো হোস্টিং) থেকে ভিডিও আপলোড করে সরাসরি .mp4 লিংকটি এখানে পেস্ট করুন।
             </p>
           </div>
           <span className="text-xs font-bold bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-full border border-emerald-200">
@@ -405,21 +402,21 @@ const ControlTab = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Filename */}
+            {/* Video URL */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
-                Filename <span className="text-red-500">*</span>
+                Video URL <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder='e.g. "myvideo.mp4" or "event1.mp4" or URL'
+                placeholder='e.g. "https://www.image2url.com/.../video.mp4"'
                 value={videoForm.filename}
                 onChange={e => setVideoForm({ ...videoForm, filename: e.target.value })}
                 className="w-full p-3 border rounded-xl bg-white font-mono text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                 required
               />
               <p className="text-[11px] text-gray-500 mt-1">
-                Target path: <span className="font-mono text-emerald-700">{resolveVideoUrlPreview(videoForm.filename) || '/keymom/filename.mp4'}</span>
+                Provide a direct .mp4 video link
               </p>
             </div>
 
@@ -576,7 +573,7 @@ const ControlTab = () => {
                   <p className="text-xs text-gray-600 line-clamp-2 mb-3">{vid.text}</p>
                   
                   <div className="text-[11px] font-mono text-gray-400 truncate mb-3 bg-gray-100 p-1.5 rounded">
-                    📁 {vid.filename}
+                    🔗 {vid.filename}
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100">

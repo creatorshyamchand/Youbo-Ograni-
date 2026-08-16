@@ -3,7 +3,13 @@ import { db } from '../lib/firebase';
 import { collection, onSnapshot, query, orderBy, doc, getDoc } from 'firebase/firestore';
 import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Gauge, Video, Sparkles } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { KeyMomentVideo, resolveVideoPath } from '../components/KeyMomentsSection';
+import { KeyMomentVideo } from '../components/KeyMomentsSection';
+
+// Fallback resolver inside the page itself
+const resolveVideoPath = (filename: string): string => {
+  if (!filename) return '';
+  return filename.trim();
+};
 
 export const KeyMomentsPage = () => {
   const [videos, setVideos] = useState<KeyMomentVideo[]>([]);
@@ -24,6 +30,7 @@ export const KeyMomentsPage = () => {
   const [speed, setSpeed] = useState<1 | 1.5 | 2>(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [videoError, setVideoError] = useState(false);
   const controlsTimeoutRef = useRef<any>(null);
 
   // Fetch logo from settings
@@ -55,15 +62,17 @@ export const KeyMomentsPage = () => {
     const playId = searchParams.get('play');
     if (playId && videos.length > 0) {
       const target = videos.find((v) => v.id === playId);
-      if (target) {
+      if (target && activeVideo?.id !== target.id) {
         setActiveVideo(target);
+        setVideoError(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
-  }, [searchParams, videos]);
+  }, [searchParams, videos, activeVideo?.id]);
 
   const selectVideo = (video: KeyMomentVideo) => {
     setActiveVideo(video);
+    setVideoError(false);
     setSearchParams({ play: video.id });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -223,31 +232,46 @@ export const KeyMomentsPage = () => {
               ref={playerContainerRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={() => isPlaying && setShowControls(false)}
-              className="relative aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl group border border-emerald-950/20 select-none"
+              className="relative w-full aspect-[4/3] sm:aspect-video bg-black rounded-xl md:rounded-3xl overflow-hidden shadow-2xl select-none group border border-emerald-950/20"
             >
-              <video
-                ref={videoRef}
-                src={activeVideo.videoUrl || resolveVideoPath(activeVideo.filename)}
-                className="w-full h-full object-contain cursor-pointer"
-                onClick={togglePlay}
-                onTimeUpdate={() => {
-                  if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
-                }}
-                onLoadedMetadata={() => {
-                  if (videoRef.current) setDuration(videoRef.current.duration);
-                }}
-                onEnded={() => setIsPlaying(false)}
-                playsInline
-              />
+              {!videoError ? (
+                <video
+                  ref={videoRef}
+                  src={activeVideo.videoUrl || resolveVideoPath(activeVideo.filename)}
+                  className="w-full h-full object-contain cursor-pointer absolute inset-0 z-0"
+                  onClick={togglePlay}
+                  onTimeUpdate={() => {
+                    if (videoRef.current) setCurrentTime(videoRef.current.currentTime);
+                  }}
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) setDuration(videoRef.current.duration);
+                  }}
+                  onEnded={() => setIsPlaying(false)}
+                  onError={() => setVideoError(true)}
+                  playsInline
+                  preload="auto"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white z-0 p-6 text-center space-y-3">
+                  <Video size={48} className="text-red-500 opacity-80" />
+                  <p className="text-lg font-bold text-red-400">ভিডিও লোড করতে সমস্যা হয়েছে</p>
+                  <p className="text-sm text-gray-300 max-w-sm">"{activeVideo.filename}" ভিডিও ফাইলটি পাওয়া যায়নি বা প্লে করা যাচ্ছে না।</p>
+                  <div className="bg-white/10 p-4 rounded-xl text-xs text-left max-w-md mt-4 border border-white/20">
+                    <p className="font-bold mb-1 text-emerald-400">সম্ভাব্য কারণ ও সমাধান:</p>
+                    <ul className="list-disc pl-4 space-y-1 text-gray-300">
+                      <li>আপনি যদি ভিডিওটি GitHub এ আপলোড করে থাকেন, তবে নিশ্চিত করুন আপনার GitHub Repository টি <b>Public</b> (Private নয়)। Private রিপোজিটরি থেকে ভিডিও প্লে হবে না।</li>
+                      <li>সরাসরি URL ব্যবহার করলে, নিশ্চিত করুন লিংকটি সঠিক এবং পাবলিকলি এক্সেস করা যায় (যেমন: Google Drive, YouTube বা অন্যান্য পাবলিক হোস্টিং)।</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
 
               {/* Big Center Play/Pause Overlay Button */}
-              {(!isPlaying || showControls) && (
-                <div
-                  onClick={togglePlay}
-                  className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[2px] transition-opacity cursor-pointer"
-                >
+              {(!isPlaying || showControls) && !videoError && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                   <button
-                    className="w-20 h-20 rounded-full bg-emerald-600/90 text-white flex items-center justify-center shadow-2xl hover:bg-emerald-500 hover:scale-110 active:scale-95 transition-all"
+                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                    className="pointer-events-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-600/90 text-white flex items-center justify-center shadow-2xl hover:bg-emerald-500 hover:scale-110 active:scale-95 transition-all"
                     aria-label={isPlaying ? 'Pause' : 'Play'}
                   >
                     {isPlaying ? <Pause size={36} /> : <Play size={36} className="ml-1 fill-white" />}
@@ -257,13 +281,14 @@ export const KeyMomentsPage = () => {
 
               {/* Bottom Custom Controls Bar */}
               <div
-                className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 md:p-6 transition-opacity duration-300 ${
+                className={`absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent p-3 sm:p-5 transition-opacity duration-300 z-20 pointer-events-auto ${
                   showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}
+                onClick={(e) => e.stopPropagation()} // Prevent clicking video through controls
               >
                 {/* Timeline Scrubber */}
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-xs font-semibold text-white/90 font-mono min-w-[40px]">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 px-1">
+                  <span className="text-[10px] sm:text-xs font-semibold text-white/90 font-mono min-w-[36px] sm:min-w-[40px]">
                     {formatTime(currentTime)}
                   </span>
                   <input
@@ -272,49 +297,54 @@ export const KeyMomentsPage = () => {
                     max={duration || 100}
                     value={currentTime}
                     onChange={handleSeek}
-                    className="flex-1 h-1.5 bg-white/30 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:h-2 transition-all"
+                    className="flex-1 h-1.5 sm:h-2 bg-white/30 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:h-2 sm:hover:h-2.5 transition-all outline-none"
+                    disabled={videoError}
                   />
-                  <span className="text-xs font-semibold text-white/70 font-mono min-w-[40px]">
+                  <span className="text-[10px] sm:text-xs font-semibold text-white/70 font-mono min-w-[36px] sm:min-w-[40px] text-right">
                     {formatTime(duration)}
                   </span>
                 </div>
 
                 {/* Control Buttons row */}
-                <div className="flex items-center justify-between text-white flex-wrap gap-2">
-                  <div className="flex items-center gap-3 md:gap-4">
+                <div className="flex items-center justify-between text-white flex-nowrap w-full">
+                  <div className="flex items-center gap-1 sm:gap-3">
                     {/* Play/Pause */}
                     <button
                       onClick={togglePlay}
-                      className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-white/20 rounded-full transition-colors"
                       title={isPlaying ? 'Pause' : 'Play'}
+                      disabled={videoError}
                     >
-                      {isPlaying ? <Pause size={22} /> : <Play size={22} className="fill-white" />}
+                      {isPlaying ? <Pause size={20} className="sm:w-6 sm:h-6" /> : <Play size={20} className="sm:w-6 sm:h-6 fill-white" />}
                     </button>
 
                     {/* Skip -10s */}
                     <button
                       onClick={() => handleSkip(-10)}
-                      className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center"
+                      className="p-1.5 sm:p-2 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center"
                       title="Skip back 10 seconds"
+                      disabled={videoError}
                     >
-                      <RotateCcw size={20} />
+                      <RotateCcw size={18} className="sm:w-5 sm:h-5" />
                     </button>
 
                     {/* Skip +10s */}
                     <button
                       onClick={() => handleSkip(10)}
-                      className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center"
+                      className="p-1.5 sm:p-2 hover:bg-white/20 rounded-full transition-colors flex items-center justify-center"
                       title="Skip forward 10 seconds"
+                      disabled={videoError}
                     >
-                      <RotateCw size={20} />
+                      <RotateCw size={18} className="sm:w-5 sm:h-5" />
                     </button>
 
-                    {/* Volume & Mute */}
-                    <div className="flex items-center gap-2 group/vol">
+                    {/* Volume & Mute - Hidden on small mobile screens to save space */}
+                    <div className="hidden sm:flex items-center gap-2 ml-2 group/vol">
                       <button
                         onClick={toggleMute}
                         className="p-2 hover:bg-white/20 rounded-full transition-colors"
                         title={isMuted ? 'Unmute' : 'Mute'}
+                        disabled={videoError}
                       >
                         {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
                       </button>
@@ -325,29 +355,32 @@ export const KeyMomentsPage = () => {
                         step={0.05}
                         value={isMuted ? 0 : volume}
                         onChange={handleVolumeChange}
-                        className="w-16 md:w-20 h-1 bg-white/40 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+                        className="w-0 opacity-0 group-hover/vol:w-20 group-hover/vol:opacity-100 h-1 bg-white/40 rounded-lg appearance-none cursor-pointer accent-emerald-400 transition-all duration-300 outline-none"
+                        disabled={videoError}
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 sm:gap-3">
                     {/* Speed Toggle (1x, 1.5x, 2x only) */}
                     <button
                       onClick={handleSpeedCycle}
-                      className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1.5 transition-colors border border-white/10"
+                      className="px-2 py-1 sm:px-3 sm:py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-1.5 transition-colors border border-white/10"
                       title="Toggle Speed (1x, 1.5x, 2x)"
+                      disabled={videoError}
                     >
-                      <Gauge size={16} />
-                      <span>{speed}x Speed</span>
+                      <Gauge size={14} className="sm:w-4 sm:h-4" />
+                      <span>{speed}x</span>
                     </button>
 
                     {/* Fullscreen Toggle */}
                     <button
                       onClick={toggleFullscreen}
-                      className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                      title="Toggle Fullscreen"
+                      className="p-1.5 sm:p-2 hover:bg-white/20 rounded-full transition-colors ml-1"
+                      title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                      disabled={videoError}
                     >
-                      {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                      {isFullscreen ? <Minimize size={18} className="sm:w-5 sm:h-5" /> : <Maximize size={18} className="sm:w-5 sm:h-5" />}
                     </button>
                   </div>
                 </div>

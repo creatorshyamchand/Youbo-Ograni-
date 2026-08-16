@@ -17,14 +17,7 @@ export interface KeyMomentVideo {
 
 export const resolveVideoPath = (filename: string): string => {
   if (!filename) return '';
-  const trimmed = filename.trim();
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) {
-    return trimmed;
-  }
-  if (trimmed.startsWith('/')) {
-    return trimmed;
-  }
-  return `/keymom/${trimmed}`;
+  return filename.trim();
 };
 
 export const KeyMomentsSection = () => {
@@ -83,7 +76,9 @@ export const KeyMomentsSection = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
             {videos.map((video, idx) => {
-              const src = video.videoUrl || resolveVideoPath(video.filename);
+              const baseSrc = video.videoUrl || resolveVideoPath(video.filename);
+              const src = baseSrc.includes('#') ? baseSrc : `${baseSrc}#t=0.001`;
+
               return (
                 <motion.div
                   key={video.id || idx}
@@ -102,6 +97,7 @@ export const KeyMomentsSection = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
                       muted
                       playsInline
+                      onError={(e) => console.error("Thumbnail load error:", e)}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-center justify-center">
                       <div className="w-16 h-16 rounded-full bg-emerald-600/90 text-white flex items-center justify-center shadow-lg group-hover:bg-emerald-500 group-hover:scale-110 transition-all duration-300">
